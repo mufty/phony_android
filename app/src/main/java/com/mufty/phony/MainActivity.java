@@ -5,6 +5,7 @@ import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,6 +14,7 @@ import com.mufty.phony.net.TcpClient;
 public class MainActivity extends AppCompatActivity {
 
     TcpClient tcpClient;
+    private static String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,12 +23,13 @@ public class MainActivity extends AppCompatActivity {
 
         new ConnectTask().execute("");
 
-        init();
+        //init();
     }
 
     public void init() {
         int i = 0;
-        int minBufferSized = 512;
+        int minBufferSize = AudioTrack.getMinBufferSize(48000,
+                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
         int sampleRate = 48000;
         byte[] music = null;
 
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                         .setSampleRate(sampleRate)
                         .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
                         .build())
-                .setBufferSizeInBytes(minBufferSized)
+                .setBufferSizeInBytes(minBufferSize)
                 .build();
 
         /*try{
@@ -66,9 +69,11 @@ public class MainActivity extends AppCompatActivity {
             tcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
                 @Override
                 //here the messageReceived method is implemented
-                public void messageReceived(String message) {
+                public void messageReceived(byte[] message) {
+                    Log.d( LOG_TAG, "Got message: " + message );
                     //this method calls the onProgressUpdate
-                    publishProgress(message);
+                    //publishProgress(message);
+                    publishProgress("");
                 }
             });
             tcpClient.run("192.168.1.10", 18561);
