@@ -125,20 +125,16 @@ public class MainActivity extends AppCompatActivity {
             msg.action = ACTION_NOTIFICATION;
 
             Notification note = new Notification();
-            String extra = intent.getStringExtra("notification_event");
-            note.title = "TODO";
-            note.message = extra;
-            /*note.title = sbn.getTag();
-            note.message = sbn.getPackageName();*/
+            String message = intent.getStringExtra("notification_text");
+            String title = intent.getStringExtra("notification_title");
+            note.title = title;
+            note.message = message;
 
             String data = gson.toJson(note);
             msg.data = data;
 
             String dataToSend = gson.toJson(msg);
             tcpClient.sendMessage(dataToSend);
-
-            /*String temp = intent.getStringExtra("notification_event") + "n" + txtView.getText();
-            txtView.setText(temp);*/
         }
     }
 

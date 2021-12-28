@@ -31,7 +31,7 @@ public class TcpClient {
             public void run() {
                 if(mBufferOut != null){
                     Log.d(TAG, "Sending: " + message);
-                    mBufferOut.println(message);
+                    mBufferOut.println(message + "\n"); //TODO handle new lines better as this will flush and send the data
                     mBufferOut.flush();
                 }
             }

@@ -1,13 +1,17 @@
 package com.mufty.phony;
 
+import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+
+import java.util.Arrays;
 
 public class PhonyNotificationListenerService extends NotificationListenerService {
     private static String LOG_TAG = PhonyNotificationListenerService.class.getSimpleName();
@@ -39,15 +43,37 @@ public class PhonyNotificationListenerService extends NotificationListenerServic
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.i(LOG_TAG,"**********  onNotificationPosted");
+
+        if(sbn.getNotification() == null || sbn.getNotification().extras == null){
+            Log.d(LOG_TAG,"No notification extras");
+            return;
+        }
+
+        Bundle extras = sbn.getNotification().extras;
+
+        String text = extras.getString(Notification.EXTRA_TEXT);
+        String title = extras.getString(Notification.EXTRA_TITLE);
+        if (extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES) != null) {}
+            text = Arrays.toString(extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES));
+
+        if (extras.getCharSequence(android.app.Notification.EXTRA_SUB_TEXT) != null) {
+            if(text == null)
+                text = Arrays.toString(extras.getCharSequenceArray(Notification.EXTRA_SUB_TEXT));
+            else
+                text += "\n" + Arrays.toString(extras.getCharSequenceArray(Notification.EXTRA_SUB_TEXT));
+        }
+
         Log.i(LOG_TAG,"ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
         Intent i = new  Intent("com.mufty.phony.NOTIFICATION_LISTENER");
         i.putExtra("notification_event","onNotificationPosted :" + sbn.getPackageName() + "n");
+        i.putExtra("notification_text",text);
+        i.putExtra("notification_title",title);
         sendBroadcast(i);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i(LOG_TAG,"********** onNOtificationRemoved");
+        Log.i(LOG_TAG,"********** onNotificationRemoved");
         Log.i(LOG_TAG,"ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText +"t" + sbn.getPackageName());
         Intent i = new  Intent("com.mufty.phony.NOTIFICATION_LISTENER");
         i.putExtra("notification_event","onNotificationRemoved :" + sbn.getPackageName() + "n");
