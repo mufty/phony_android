@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Phony</string>
+    <string name="service_name">Phony service</string>
+    <string name="notification_listener_service">Notification listener</string>
+    <string name="notification_listener_service_explanation">Allow listening to notifications?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

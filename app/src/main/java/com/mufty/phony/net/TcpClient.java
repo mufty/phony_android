@@ -2,8 +2,9 @@ package com.mufty.phony.net;
 
 import android.util.Log;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -18,7 +19,7 @@ public class TcpClient {
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
     private PrintWriter mBufferOut;
-    private BufferedInputStream mBufferIn;
+    private BufferedReader mBufferIn;
 
     public TcpClient(OnMessageReceived listener){
         mMessageListener = listener;
@@ -71,18 +72,17 @@ public class TcpClient {
 
             try {
                 mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                mBufferIn = new BufferedInputStream(socket.getInputStream());
+                mBufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                 //buffer 16bit size 16384
                 byte[] buffer = new byte[16384];
 
                 while(mRun){
-                    int bytesRead = mBufferIn.read(buffer);
-                    Log.d("TCP Client", "Bytes read: " + bytesRead);
-                    //mServerMessage = mBufferIn.read(buffer);
+                    mServerMessage = mBufferIn.readLine();
+                    Log.d("TCP Client", "Got message: " + mServerMessage);
 
-                    if(bytesRead > 0 && mMessageListener != null){
-                        mMessageListener.messageReceived(buffer);
+                    if(mServerMessage != null && mMessageListener != null){
+                        mMessageListener.messageReceived(mServerMessage);
                     }
                 }
 
@@ -98,6 +98,6 @@ public class TcpClient {
     }
 
     public interface OnMessageReceived {
-        public void messageReceived(byte[] message);
+        public void messageReceived(String message);
     }
 }
