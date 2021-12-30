@@ -16,22 +16,22 @@ import java.util.Arrays;
 
 public class PhonyNotificationListenerService extends NotificationListenerService {
     private static String LOG_TAG = PhonyNotificationListenerService.class.getSimpleName();
-    private NLServiceReceiver nlservicereciver;
+    //private NLServiceReceiver nlservicereciver;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
-        nlservicereciver = new NLServiceReceiver();
+        //nlservicereciver = new NLServiceReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.mufty.phony.NOTIFICATION_LISTENER");
-        registerReceiver(nlservicereciver,filter);
+        //registerReceiver(nlservicereciver,filter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(nlservicereciver);
+        //unregisterReceiver(nlservicereciver);
     }
 
     @Override
@@ -77,6 +77,7 @@ public class PhonyNotificationListenerService extends NotificationListenerServic
             Intent i = new  Intent("com.mufty.phony.NOTIFICATION_LISTENER");
             i.putExtra("notification_event","onNotificationPosted :" + sbn.getPackageName() + "n");
             i.putExtra("notification_text",text);
+            i.putExtra("notification_key",sbn.getKey());
             i.putExtra("notification_title",title);
             sendBroadcast(i);
         }

@@ -127,8 +127,10 @@ public class MainActivity extends AppCompatActivity {
             Notification note = new Notification();
             String message = intent.getStringExtra("notification_text");
             String title = intent.getStringExtra("notification_title");
+            String key = intent.getStringExtra("notification_key");
             note.title = title;
             note.message = message;
+            note.id = key;
 
             String data = gson.toJson(note);
             msg.data = data;

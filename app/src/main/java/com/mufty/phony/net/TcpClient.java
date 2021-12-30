@@ -75,7 +75,7 @@ public class TcpClient {
                 mBufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                 //buffer 16bit size 16384
-                byte[] buffer = new byte[16384];
+                //byte[] buffer = new byte[16384];
 
                 while(mRun){
                     mServerMessage = mBufferIn.readLine();
