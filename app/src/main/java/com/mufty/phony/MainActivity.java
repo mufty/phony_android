@@ -17,14 +17,21 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mufty.phony.gson.Cancel;
 import com.mufty.phony.gson.Message;
 import com.mufty.phony.gson.Notification;
-import com.mufty.phony.net.TcpClient;
+import com.mufty.phony.inc.Actions;
+import com.mufty.phony.inc.HandlerCallback;
+
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
 
 public class MainActivity extends AppCompatActivity {
     GsonBuilder builder = new GsonBuilder();
     Gson gson = builder.create();
-    TcpClient tcpClient;
+    ZMQ.Socket socket;
+    HandlerCallback messageHandler;
     private static String LOG_TAG = MainActivity.class.getSimpleName();
     private NotificationReceiver receiver;
     public static String ACTION_NOTIFICATION = "notification";
@@ -48,6 +55,23 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.mufty.phony.NOTIFICATION_LISTENER");
         registerReceiver(receiver,filter);
+
+        messageHandler = new HandlerCallback() {
+            @Override
+            public void handleIncomingMessage(Message msg) {
+                if(msg == null)
+                    return;
+
+                switch (msg.action) {
+                    case "cancel":
+                        Cancel cancel = gson.fromJson(msg.data, Cancel.class);
+                        Log.d( LOG_TAG, "Canceling notification: " + cancel.id );
+                        PhonyNotificationListenerService.getInstance().cancelNotification(cancel.id);
+                        break;
+                    default:
+                }
+            }
+        };
     }
 
     private boolean isNotificationServiceEnabled(){
@@ -94,24 +118,27 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(receiver);
     }
 
-    public class ConnectTask extends AsyncTask<String, String, TcpClient> {
+    public class ConnectTask extends AsyncTask<String, String, ZMQ.Socket> {
 
         @Override
-        protected TcpClient doInBackground(String... strings) {
-            //we create a TCPClient object
-            tcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
-                @Override
-                //here the messageReceived method is implemented
-                public void messageReceived(String message) {
-                    Log.d( LOG_TAG, "Got message: " + message );
-                    //this method calls the onProgressUpdate
-                    //publishProgress(message);
-                    publishProgress(message);
-                }
-            });
-            tcpClient.run("192.168.1.10", 18561);
+        protected ZMQ.Socket doInBackground(String... strings) {
+            try (ZContext context = new ZContext()){
+                socket = context.createSocket(SocketType.PAIR);
+                socket.connect("tcp://192.168.1.10:18561");
+                Log.d( LOG_TAG, "Connected to tcp://192.168.1.10:18561");
 
-            return null;
+                while(!Thread.currentThread().isInterrupted()){
+                    byte[] rawMsg = socket.recv(0);
+
+                    String msg = new String(rawMsg, ZMQ.CHARSET);
+                    Log.d( LOG_TAG, "Got message: " + msg );
+                    Message message = gson.fromJson(msg, Message.class);
+                    messageHandler.handleIncomingMessage(message);
+                    publishProgress(msg);
+                }
+
+                return socket;
+            }
         }
     }
 
@@ -136,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             msg.data = data;
 
             String dataToSend = gson.toJson(msg);
-            tcpClient.sendMessage(dataToSend);
+            socket.send(dataToSend);
         }
     }
 
